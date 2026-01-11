@@ -5,12 +5,13 @@ local menu_elements = {
     corpse_explosion_boolean      = checkbox:new(true, get_hash(my_utility.plugin_label .. "corpse_explosion_boolean_base")),
     corpse_explosion_mode         = combo_box:new(0, get_hash(my_utility.plugin_label .. "corpse_explosion_cast_modes_base")),
     corpse_explosion_logic        = combo_box:new(0, get_hash(my_utility.plugin_label .. "corpse_explosion_logic_base")),
-    effect_size_affix_mult   = slider_float:new(0.0, 200.0, 0.0, get_hash(my_utility.plugin_label .. "corpse_explosion_effect_size_affix_mult_base")), -- Slider from 0.0 to 100.0
+    effect_size_affix_mult   = slider_float:new(0.0, 200.0, 0.0, get_hash(my_utility.plugin_label .. "corpse_explosion_effect_size_affix_mult_base")), -- Slider from 0.0 to 200.0
+    min_enemies              = slider_int:new(0, 20, 1, get_hash(my_utility.plugin_label .. "corpse_explosion_min_enemies_base")), -- Min enemies slider
 }
 
 local function menu()
     if menu_elements.corpse_explosion_submenu:push("Corpse Explosion") then
-        menu_elements.corpse_explosion_boolean:render("Enable Explosion Cast", "")
+        menu_elements.corpse_explosion_boolean:render("Enable Spell", "")
 
         if menu_elements.corpse_explosion_boolean:get() then
             local dropbox_options = {"Combo & Clear", "Combo Only", "Clear Only"}
@@ -18,6 +19,7 @@ local function menu()
             local logic_options = {"Default", "Runing Corpses"};
             menu_elements.corpse_explosion_logic:render("Logic", logic_options, "");
             menu_elements.effect_size_affix_mult:render("Effect Size Affix Mult", "", 1)
+            menu_elements.min_enemies:render("Min Enemies to Cast", "Minimum enemies in explosion radius (1 = always cast if any enemy)")
         end
 
         menu_elements.corpse_explosion_submenu:pop()
@@ -49,6 +51,7 @@ local function get_corpse_explosion_data_default()
     -- local corpse_explosion_range = 3.0; -- default corpse range
     local player_position = get_player_position();
     local actors = actors_manager.get_ally_actors();
+    local min_enemies = menu_elements.min_enemies:get();
 
     local great_corpse_list = {};
     for _, object in ipairs(actors) do
@@ -61,7 +64,7 @@ local function get_corpse_explosion_data_default()
             if distance_to_player_sqr <= (9.0 * 9.0) then
                 -- Calculate how many enemies this corpse can hit
                 local hits = utility.get_amount_of_units_inside_circle(corpse_position, corpse_explosion_range)
-                if hits > 0 then
+                if hits >= min_enemies then
                     table.insert(great_corpse_list, {hits = hits, corpse = object});
                 end
             end
@@ -95,6 +98,7 @@ local function get_corpse_explosion_data_runing_corpses()
     local player_position = get_player_position();
     local actors = actors_manager.get_ally_actors();
     local enemies = actors_manager.get_enemy_npcs();
+    local min_enemies = menu_elements.min_enemies:get();
 
     local best_corpse = nil;
     local max_packed_enemies = 0;
@@ -125,7 +129,7 @@ local function get_corpse_explosion_data_runing_corpses()
                 if nearest_enemy then
                     local packed_enemies = utility.get_amount_of_units_inside_circle(nearest_enemy:get_position(), explosion_radius);
 
-                    if packed_enemies > max_packed_enemies then
+                    if packed_enemies >= min_enemies and packed_enemies > max_packed_enemies then
                         best_corpse = corpse;
                         max_packed_enemies = packed_enemies;
                     end
@@ -161,18 +165,25 @@ local function logics()
                 corpse_explosion_id);
 
     if not is_logic_allowed then
+        console.print("[Necromancer] [Corpse Explosion] Logic not allowed (cooldown or disabled)");
         return false;
     end;
 
     if not utility.can_cast_spell(corpse_explosion_id) then
+        console.print("[Necromancer] [Corpse Explosion] Cannot cast spell (cooldown/resource)");
         return false;
     end
 
+    -- Note: Cast mode check removed - no combat detection API available
+    -- All cast modes now work the same (always cast when conditions are met)
+
     local corpses_data = get_corpse_explosion_data();
     if not corpses_data.is_valid then
+        console.print("[Necromancer] [Corpse Explosion] No valid corpse found (min enemies: ", menu_elements.min_enemies:get(), ")");
         return false;
     end
      
+    console.print("[Necromancer] [Corpse Explosion] Attempting to cast on corpse with ", corpses_data.hits, " enemies");
     if cast_spell.target(corpses_data.corpse, corpse_explosion_id, 0.60, false) then
         local current_time = get_time_since_inject();
         last_corpse_explosion = current_time + 0.70;
@@ -182,6 +193,7 @@ local function logics()
         return true;
     end
 
+    console.print("[Necromancer] [Corpse Explosion] Cast failed");
     return false;
 end
 

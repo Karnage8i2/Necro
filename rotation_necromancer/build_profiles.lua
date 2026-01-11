@@ -35,6 +35,7 @@ local build_profiles = {
             "blight",
             "decrepify",
             "corpse_tendrils",
+            "corpse_explosion",
             "blood_mist",
             "bone_storm",
             "reap",
