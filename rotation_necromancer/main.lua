@@ -301,7 +301,14 @@ on_update(function ()
         return;
     end
 
-    if should_use_spell("corpse_explosion", 432897, best_target) and spells.corpse_explosion.logics()then
+    local corpse_explosion_allowed = should_use_spell("corpse_explosion", 432897, best_target);
+    if not corpse_explosion_allowed then
+        -- Debug: Log why corpse explosion is blocked
+        if not cached_equipped_spells[432897] then
+            console.print("[Necromancer] [Corpse Explosion] BLOCKED: Not equipped on skill bar");
+        end
+    end
+    if corpse_explosion_allowed and spells.corpse_explosion.logics()then
         cast_end_time = current_time + 0.50;
         return;
     end;
