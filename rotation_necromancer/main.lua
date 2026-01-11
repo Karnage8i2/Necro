@@ -301,13 +301,13 @@ on_update(function ()
         return;
     end
 
-    if should_use_spell("bone_spear", 432879, best_target) and spells.bone_spear.logics(best_target, entity_list)then
-        cast_end_time = current_time + 0.4;
+    if should_use_spell("corpse_explosion", 432897, best_target) and spells.corpse_explosion.logics()then
+        cast_end_time = current_time + 0.50;
         return;
     end;
 
-    if should_use_spell("corpse_explosion", 432897, best_target) and spells.corpse_explosion.logics()then
-        cast_end_time = current_time + 0.50;
+    if should_use_spell("bone_spear", 432879, best_target) and spells.bone_spear.logics(best_target, entity_list)then
+        cast_end_time = current_time + 0.4;
         return;
     end;
 
