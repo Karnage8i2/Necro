@@ -11,7 +11,7 @@ local menu_elements = {
 
 local function menu()
     if menu_elements.corpse_explosion_submenu:push("Corpse Explosion") then
-        menu_elements.corpse_explosion_boolean:render("Enable Explosion Cast", "")
+        menu_elements.corpse_explosion_boolean:render("Enable Spell", "")
 
         if menu_elements.corpse_explosion_boolean:get() then
             local dropbox_options = {"Combo & Clear", "Combo Only", "Clear Only"}
