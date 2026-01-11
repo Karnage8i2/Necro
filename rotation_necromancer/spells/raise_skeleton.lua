@@ -16,7 +16,7 @@ local menu_elements = {
 
 local function menu()
     if menu_elements.raise_skeleton_submenu:push("Raise Skeleton") then
-        menu_elements.raise_skeleton_boolean:render("Enable Explosion Cast", "")
+        menu_elements.raise_skeleton_boolean:render("Enable Spell", "")
 
         if menu_elements.raise_skeleton_boolean:get() then
             local dropbox_options = {"Combo & Clear", "Combo Only", "Clear Only"}
@@ -182,42 +182,42 @@ local function logics()
         return false
     end
  
-    local is_ranged_maxed_out = false
     local max_melee_skeletons = get_max_melee_skeletons()
     local current_melee_skeletons_list = get_current_skeletons_melee_list()
     local melee_maxed_out = #current_melee_skeletons_list >= max_melee_skeletons
-    if melee_maxed_out then
-        local max_ranged_skeletons = get_max_ranged_skeletons()
-        local current_ranged_skeletons_list = get_current_skeletons_ranged_list()
-        is_ranged_maxed_out = #current_ranged_skeletons_list  >= max_ranged_skeletons
-        if is_ranged_maxed_out then
-
-            local melee_low_count = 0
-            -- priest check
-            for index, value in ipairs(current_melee_skeletons_list) do
-                local current_health = value:get_current_health()
-                local max_health = value:get_max_health()
-                local current_health_percentage = current_health  / max_health
-                if current_health_percentage <= 0.60 then
-                    melee_low_count = melee_low_count + 1
-                end
+    
+    local max_ranged_skeletons = get_max_ranged_skeletons()
+    local current_ranged_skeletons_list = get_current_skeletons_ranged_list()
+    local ranged_maxed_out = #current_ranged_skeletons_list >= max_ranged_skeletons
+    
+    -- If both melee and ranged are maxed out, check for priest casting
+    if melee_maxed_out and ranged_maxed_out then
+        local melee_low_count = 0
+        -- priest check for melee skeletons
+        for index, value in ipairs(current_melee_skeletons_list) do
+            local current_health = value:get_current_health()
+            local max_health = value:get_max_health()
+            local current_health_percentage = current_health / max_health
+            if current_health_percentage <= 0.60 then
+                melee_low_count = melee_low_count + 1
             end
+        end
 
-            local ranged_low_count = 0
-            for index, value in ipairs(current_ranged_skeletons_list) do
-                local current_health = value:get_current_health()
-                local max_health = value:get_max_health()
-                local current_health_percentage = current_health  / max_health
-                if current_health_percentage <= 0.60 then
-                    ranged_low_count = ranged_low_count + 1
-                end
+        local ranged_low_count = 0
+        -- priest check for ranged skeletons
+        for index, value in ipairs(current_ranged_skeletons_list) do
+            local current_health = value:get_current_health()
+            local max_health = value:get_max_health()
+            local current_health_percentage = current_health / max_health
+            if current_health_percentage <= 0.60 then
+                ranged_low_count = ranged_low_count + 1
             end
+        end
 
-            local total_count = melee_low_count + ranged_low_count
-            -- console.print("total_count " .. total_count)
-            if total_count < menu_elements.priest_threshold:get() then
-                return false
-            end
+        local total_count = melee_low_count + ranged_low_count
+        -- If not enough low health skeletons, don't cast (prevents spam)
+        if total_count < menu_elements.priest_threshold:get() then
+            return false
         end
     end
     
@@ -227,16 +227,12 @@ local function logics()
 
         if not melee_maxed_out then
             console.print("[Necromancer] [SpellCast] [Raise Skeleton] (MELEE) Hits ", 1);
-           
+        elseif not ranged_maxed_out then
+            console.print("[Necromancer] [SpellCast] [Raise Skeleton] (MAGE) Hits ", 1);
         else
-            if not is_ranged_maxed_out then
-                console.print("[Necromancer] [SpellCast] [Raise Skeleton] (MAGE) Hits ", 1);
-            else
-                last_raise_skeleton = current_time + 0.70 + menu_elements.priest_delay:get();
-                console.print("[Necromancer] [SpellCast] [Raise Skeleton] (PRIEST) Hits ", 1);
-            end
+            last_raise_skeleton = current_time + 0.70 + menu_elements.priest_delay:get();
+            console.print("[Necromancer] [SpellCast] [Raise Skeleton] (PRIEST) Hits ", 1);
         end
-        
         
         return true;
     end
