@@ -174,21 +174,8 @@ local function logics()
         return false;
     end
 
-    -- Check cast mode
-    local cast_mode = menu_elements.corpse_explosion_mode:get();
-    local is_in_combat = utility.is_in_combat();
-    
-    -- cast_mode: 0 = "Combo & Clear", 1 = "Combo Only", 2 = "Clear Only"
-    if cast_mode == 1 and not is_in_combat then
-        -- Combo Only mode: skip if not in combat
-        console.print("[Necromancer] [Corpse Explosion] Skipped - Combo Only mode but not in combat");
-        return false;
-    elseif cast_mode == 2 and is_in_combat then
-        -- Clear Only mode: skip if in combat
-        console.print("[Necromancer] [Corpse Explosion] Skipped - Clear Only mode but in combat");
-        return false;
-    end
-    -- Mode 0 (Combo & Clear) always proceeds
+    -- Note: Cast mode check removed - no combat detection API available
+    -- All cast modes now work the same (always cast when conditions are met)
 
     local corpses_data = get_corpse_explosion_data();
     if not corpses_data.is_valid then
