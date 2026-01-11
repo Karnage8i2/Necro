@@ -91,6 +91,10 @@ end
 local can_move = 0.0;
 local cast_end_time = 0.0;
 
+-- Debug message throttling
+local last_corpse_explosion_debug_time = 0.0;
+local corpse_explosion_debug_interval = 5.0; -- Print message every 5 seconds max
+
 local blood_mist_buff_name = "Necromancer_BloodMist";
 local blood_mist_buff_name_hash = blood_mist_buff_name;
 local blood_mist_buff_name_hash_c = 493422;
@@ -303,9 +307,12 @@ on_update(function ()
 
     local corpse_explosion_allowed = should_use_spell("corpse_explosion", 432897, best_target);
     if not corpse_explosion_allowed then
-        -- Debug: Log why corpse explosion is blocked
+        -- Debug: Log why corpse explosion is blocked (throttled to avoid spam)
         if not cached_equipped_spells[432897] then
-            console.print("[Necromancer] [Corpse Explosion] BLOCKED: Not equipped on skill bar");
+            if current_time >= last_corpse_explosion_debug_time + corpse_explosion_debug_interval then
+                console.print("[Necromancer] [Corpse Explosion] BLOCKED: Not equipped on skill bar");
+                last_corpse_explosion_debug_time = current_time;
+            end
         end
     end
     if corpse_explosion_allowed and spells.corpse_explosion.logics()then
