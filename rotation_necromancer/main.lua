@@ -43,7 +43,7 @@ local spells =
 
 on_render_menu (function ()
 
-    if not menu.main_tree:push("Necromancer: Base") then
+    if not menu.main_tree:push("Necromancer_Karnage") then
         return;
     end;
 
@@ -527,4 +527,4 @@ on_render(function ()
 
 end);
 
-console.print("Lua Plugin - Necromancer Base - Version 2.0 (Build Profiles + Equipped Skills)");
+console.print("Lua Plugin - Necromancer_Karnage - Version 2.0 (Build Profiles + Equipped Skills)");
