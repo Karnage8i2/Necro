@@ -165,10 +165,12 @@ local function logics()
                 corpse_explosion_id);
 
     if not is_logic_allowed then
+        console.print("[Necromancer] [Corpse Explosion] Logic not allowed (cooldown or disabled)");
         return false;
     end;
 
     if not utility.can_cast_spell(corpse_explosion_id) then
+        console.print("[Necromancer] [Corpse Explosion] Cannot cast spell (cooldown/resource)");
         return false;
     end
 
@@ -179,18 +181,22 @@ local function logics()
     -- cast_mode: 0 = "Combo & Clear", 1 = "Combo Only", 2 = "Clear Only"
     if cast_mode == 1 and not is_in_combat then
         -- Combo Only mode: skip if not in combat
+        console.print("[Necromancer] [Corpse Explosion] Skipped - Combo Only mode but not in combat");
         return false;
     elseif cast_mode == 2 and is_in_combat then
         -- Clear Only mode: skip if in combat
+        console.print("[Necromancer] [Corpse Explosion] Skipped - Clear Only mode but in combat");
         return false;
     end
     -- Mode 0 (Combo & Clear) always proceeds
 
     local corpses_data = get_corpse_explosion_data();
     if not corpses_data.is_valid then
+        console.print("[Necromancer] [Corpse Explosion] No valid corpse found (min enemies: ", menu_elements.min_enemies:get(), ")");
         return false;
     end
      
+    console.print("[Necromancer] [Corpse Explosion] Attempting to cast on corpse with ", corpses_data.hits, " enemies");
     if cast_spell.target(corpses_data.corpse, corpse_explosion_id, 0.60, false) then
         local current_time = get_time_since_inject();
         last_corpse_explosion = current_time + 0.70;
@@ -200,6 +206,7 @@ local function logics()
         return true;
     end
 
+    console.print("[Necromancer] [Corpse Explosion] Cast failed");
     return false;
 end
 
